@@ -21,7 +21,6 @@ def homepage():
 def ai_assistant():
     return render_template("ai-assistant.html")
 
-
 INSTRUCTIONS = """
 nama kamu rintis,Kamu adalah asisten virtual yang ramah, responsif, dan solutif, siap membantu pelanggan RintisOne dalam memahami layanan, menyelesaikan kendala teknis, menjawab pertanyaan umum, 
 serta memberikan panduan penggunaan platform.
@@ -39,26 +38,30 @@ Daftar member RintisOne:
 - Silvan Nando Himawan, student at Universitas Pembangunan Nasional "Veteran" Yogyakarta
 """
 
-def chat_with_gpt(prompt):
-    response = client.chat.completions.create(
+def complete_with_gpt(prompt):
+    # Menggunakan endpoint completions (bukan chat)
+    response = client.completions.create(
         model="deepseek-r1-0528-qwen3-8b:free",
-        messages=[
-            {"role": "system", "content": INSTRUCTIONS},
-            {"role": "user", "content": prompt}
-        ]
+        prompt=f"{INSTRUCTIONS}\nUser: {prompt}\nAI:",
+        max_tokens=512,
+        temperature=0.7,
+        stop=["User:", "AI:"]
     )
-    return response.choices[0].message.content.strip()
+    return response.choices[0].text.strip()
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.json
-    prompt = data.get("prompt", "")
+    try:
+        data = request.json
+        prompt = data.get("prompt", "")
 
-    if not prompt:
-        return jsonify({"error": "No prompt provided"}), 400
+        if not prompt:
+            return jsonify({"error": "No prompt provided"}), 400
 
-    response = chat_with_gpt(prompt)
-    return jsonify({"response": response})
+        response = complete_with_gpt(prompt)
+        return jsonify({"response": response})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Tidak perlu app.run() di bawah ini untuk production.
-# Gunicorn akan menjalankan 'server:app' secara otomatis di Railway.
+# Gunicorn akan menjalankan 'server:app' secara otomatis di
