@@ -408,12 +408,10 @@
         chatBox.appendChild(aiMessage);
 
         try {
-            let response = await fetch("http://127.0.0.1:5000/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ prompt: userInput })
+            let response = await fetch("/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ prompt: userInput })
             });
 
             let data = await response.json();
